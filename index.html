@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pack Draw Empire</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Arial;
+    background:#07111f;
+    color:white;
+}
+
+h1{
+    text-align:center;
+    color:#22c55e;
+    font-size:40px;
+    margin-top:20px;
+}
+
+.subtitle{
+    text-align:center;
+    color:#cbd5e1;
+}
+
+.section{
+    width:90%;
+    max-width:900px;
+    margin:20px auto;
+    background:#111827;
+    padding:20px;
+    border-radius:20px;
+}
+
+.pack-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.arrow{
+    width:50px;
+    height:50px;
+    border-radius:12px;
+    border:none;
+    background:#1f2937;
+    color:white;
+    font-size:22px;
+    cursor:pointer;
+}
+
+.arrow:hover{
+    background:#22c55e;
+    color:black;
+}
+
+.pack-title{
+    text-align:center;
+    font-size:26px;
+    color:#22c55e;
+    font-weight:bold;
+}
+
+.pack-cost{
+    text-align:center;
+    color:#94a3b8;
+}
+
+.result-box{
+    text-align:center;
+    margin-top:15px;
+}
+
+.result-box img{
+    width:100%;
+    height:300px;
+    object-fit:cover;
+    border-radius:15px;
+}
+
+.prize-name{
+    font-size:28px;
+    margin-top:10px;
+    font-weight:bold;
+}
+
+.prize-price{
+    color:#22c55e;
+    font-size:20px;
+}
+
+button{
+    width:100%;
+    padding:15px;
+    margin-top:15px;
+    border:none;
+    border-radius:12px;
+    background:#22c55e;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+.stat{
+    background:#0f172a;
+    padding:15px;
+    border-radius:15px;
+}
+
+.stat-value{
+    color:#22c55e;
+    font-size:24px;
+    font-weight:bold;
+}
+
+.inventory-item{
+    background:#0f172a;
+    padding:12px;
+    margin-bottom:10px;
+    border-radius:12px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎰 Pack Draw Empire</h1>
+<p class="subtitle">Start $100 • Progress through 10 tiers • Build wealth</p>
+
+<div class="section">
+
+<div class="pack-header">
+<button class="arrow" onclick="prevPack()">⬅</button>
+
+<div>
+<div class="pack-title" id="packTitle"></div>
+<div class="pack-cost" id="packCost"></div>
+</div>
+
+<button class="arrow" onclick="nextPack()">➡</button>
+</div>
+
+<div class="result-box">
+<img id="img">
+<div class="prize-name" id="name">Press Open</div>
+<div class="prize-price" id="price">$0</div>
+<p id="desc"></p>
+
+<button onclick="openPack()">OPEN PACK</button>
+</div>
+
+</div>
+
+<!-- STATS -->
+<div class="section">
+<h2 style="color:#22c55e;">Stats</h2>
+
+<div class="stats">
+<div class="stat">
+Money<br>
+<div class="stat-value" id="money">$100</div>
+</div>
+
+<div class="stat">
+Best Pull<br>
+<div class="stat-value" id="best">None</div>
+</div>
+</div>
+
+</div>
+
+<!-- INVENTORY -->
+<div class="section">
+<h2 style="color:#22c55e;">Inventory</h2>
+<div id="inv"></div>
+</div>
+
+<script>
+
+let money = 100;
+let inventory = [];
+let best = "None";
+let current = 0;
+
+/* ===== 10 BALANCED PACKS ===== */
+const packs = [
+
+/* 1 */
+{
+title:"🚗 Starter Pack",
+cost:25,
+items:[
+{name:"Civic", value:3000, image:"https://images.unsplash.com/photo-1492144534655-ae79c964c9d7"},
+{name:"Corolla", value:5000, image:"https://images.unsplash.com/photo-1549399542"},
+{name:"Accord", value:8000, image:"https://images.unsplash.com/photo-1552519507"},
+{name:"Mazda RX7", value:55000, image:"https://images.unsplash.com/photo-1502877338535"},
+{name:"BMW M3", value:70000, image:"https://images.unsplash.com/photo-1503376780353"},
+{name:"Audi RS5", value:85000, image:"https://images.unsplash.com/photo-1542282088"},
+{name:"Nissan GTR", value:120000, image:"https://images.unsplash.com/photo-1502877338535"},
+{name:"Porsche 911", value:150000, image:"https://images.unsplash.com/photo-1503736334956"},
+{name:"Lambo Huracan", value:300000, image:"https://images.unsplash.com/photo-1544636331"},
+{name:"Ferrari F8", value:350000, image:"https://images.unsplash.com/photo-1494905998402"}
+]
+},
+
+/* 2 */
+{
+title:"⌚ Watch Pack",
+cost:1000,
+items:[
+{name:"Casio", value:50},
+{name:"Seiko", value:400},
+{name:"Tissot", value:900},
+{name:"Tag", value:2500},
+{name:"Omega", value:7000},
+{name:"Rolex", value:12000},
+{name:"Daytona", value:45000},
+{name:"Patek", value:90000},
+{name:"AP", value:150000},
+{name:"Richard Mille", value:500000}
+]
+},
+
+/* 3 */
+{
+title:"🏍 Bike Pack",
+cost:5000,
+items:[
+{name:"Bike A", value:5000},
+{name:"R6", value:12000},
+{name:"Ninja", value:20000},
+{name:"Ducati", value:30000},
+{name:"BMW RR", value:50000},
+{name:"Harley", value:40000},
+{name:"H2R", value:60000},
+{name:"V4", value:70000},
+{name:"Superbike", value:100000},
+{name:"F1 Bike", value:200000}
+]
+},
+
+/* 4 */
+{
+title:"🏠 House Pack",
+cost:50000,
+items:[
+{name:"Apartment", value:150000},
+{name:"House", value:300000},
+{name:"Beach House", value:800000},
+{name:"Penthouse", value:2000000},
+{name:"Mansion", value:5000000},
+{name:"Dubai Villa", value:7000000},
+{name:"Hollywood", value:25000000},
+{name:"Beverly Hills", value:40000000},
+{name:"Mega Estate", value:75000000},
+{name:"Palace", value:150000000}
+]
+},
+
+/* 5 */
+{
+title:"🏎 Supercar Pack",
+cost:500000,
+items:[
+{name:"McLaren", value:300000},
+{name:"Ferrari", value:350000},
+{name:"Lambo", value:500000},
+{name:"Bugatti", value:3200000},
+{name:"Koenigsegg", value:4000000},
+{name:"Pagani", value:3500000},
+{name:"Divo", value:5000000},
+{name:"P1", value:4500000},
+{name:"LaFerrari", value:5000000},
+{name:"Jesko", value:6000000}
+]
+},
+
+/* 6 */
+{
+title:"✈️ Jet Pack",
+cost:5000000,
+items:[
+{name:"Helicopter", value:500000},
+{name:"Jet", value:8500000},
+{name:"G650", value:65000000},
+{name:"BBJ", value:150000000},
+{name:"A380 VIP", value:400000000},
+{name:"Presidential", value:600000000},
+{name:"Golden Jet", value:1000000000},
+{name:"Sky Palace", value:2000000000},
+{name:"Diamond Jet", value:3000000000},
+{name:"God Jet", value:10000000000}
+]
+},
+
+/* 7 */
+{
+title:"🛥 Yacht Pack",
+cost:50000000,
+items:[
+{name:"Small Yacht", value:1000000},
+{name:"Sport Yacht", value:5000000},
+{name:"Luxury Yacht", value:10000000},
+{name:"Mega Yacht", value:50000000},
+{name:"Super Yacht", value:150000000},
+{name:"Gold Yacht", value:300000000},
+{name:"Floating Palace", value:500000000},
+{name:"Ultra Yacht", value:800000000},
+{name:"Royal Yacht", value:1200000000},
+{name:"God Yacht", value:3000000000}
+]
+},
+
+/* 8 */
+{
+title:"🚀 Space Pack",
+cost:500000000,
+items:[
+{name:"Rocket Small", value:50000000},
+{name:"Falcon 9", value:100000000},
+{name:"Starship", value:500000000},
+{name:"Moon Base", value:1000000000},
+{name:"Mars Base", value:2000000000},
+{name:"Space Station", value:5000000000},
+{name:"Alien Tech", value:10000000000},
+{name:"Galaxy Ship", value:20000000000},
+{name:"Black Hole Tech", value:50000000000},
+{name:"Universe Core", value:100000000000}
+]
+},
+
+/* 9 */
+{
+title:"💎 Diamond Pack",
+cost:1000000000,
+items:[
+{name:"Small Diamond", value:1000000},
+{name:"Gold Bar", value:5000000},
+{name:"Diamond Ring", value:10000000},
+{name:"Crown", value:50000000},
+{name:"Golden Throne", value:100000000},
+{name:"Diamond Car", value:500000000},
+{name:"Crystal Mansion", value:1000000000},
+{name:"Gem Palace", value:5000000000},
+{name:"Infinity Diamond", value:10000000000},
+{name:"God Gem", value:50000000000}
+]
+},
+
+/* 10 */
+{
+title:"👑 GOD PACK",
+cost:2000000000,
+items:[
+{name:"Infinity Car", value:1000000000},
+{name:"Time Watch", value:5000000000},
+{name:"Reality House", value:10000000000},
+{name:"Galaxy Jet", value:50000000000},
+{name:"Universe Yacht", value:100000000000},
+{name:"Multiverse Key", value:500000000000},
+{name:"God Crown", value:1000000000000},
+{name:"Creation Engine", value:5000000000000},
+{name:"Reality Control", value:10000000000000},
+{name:"OMNI ITEM", value:100000000000000}
+]
+}
+
+];
+
+/* ===== GAME LOGIC ===== */
+
+function load(){
+document.getElementById("packTitle").innerText = packs[current].title;
+document.getElementById("packCost").innerText = "Cost: $" + packs[current].cost;
+}
+
+function prevPack(){
+current--;
+if(current<0) current=packs.length-1;
+load();
+}
+
+function nextPack(){
+current++;
+if(current>=packs.length) current=0;
+load();
+}
+
+function openPack(){
+let pack = packs[current];
+
+if(money < pack.cost){
+alert("Not enough money");
+return;
+}
+
+money -= pack.cost;
+
+let i=0;
+let spin = setInterval(()=>{
+
+let item = pack.items[Math.floor(Math.random()*pack.items.length)];
+
+document.getElementById("img").src = item.image || "https://images.unsplash.com/photo-1503376780353";
+document.getElementById("name").innerText = item.name;
+document.getElementById("price").innerText = "$"+item.value;
+document.getElementById("desc").innerText = "Lucky pull!";
+
+i++;
+
+if(i>25){
+clearInterval(spin);
+
+inventory.push(item);
+
+if(best==="None" || item.value>0){
+best=item.name;
+}
+
+update();
+}
+},100);
+}
+
+function update(){
+document.getElementById("money").innerText = "$"+money;
+document.getElementById("best").innerText = best;
+
+let box = document.getElementById("inv");
+box.innerHTML="";
+
+inventory.forEach((i,index)=>{
+box.innerHTML += `
+<div class="inventory-item">
+<b>${i.name}</b><br>
+$${i.value}
+<button onclick="sell(${index})">Sell</button>
+</div>`;
+});
+}
+
+function sell(i){
+money += inventory[i].value;
+inventory.splice(i,1);
+update();
+}
+
+load();
+update();
+
+</script>
+
+</body>
+</html>
